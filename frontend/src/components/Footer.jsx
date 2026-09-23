@@ -5,7 +5,7 @@ import { Phone, MapPin } from 'lucide-react';
 const Footer = () => {
   return (
     <footer style={{
-      backgroundColor: '#050a17',
+      backgroundColor: '#000000ff',
       color: '#ffffff',
       paddingTop: '2.25rem',
       paddingBottom: '1.5rem',

@@ -192,7 +192,7 @@ const AdminDashboard = () => {
       const res = await client.post(`/properties/${editingProperty.id}/images`, uploadData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      
+
       // Update local editing property images
       const updatedPropRes = await client.get(`/properties/${editingProperty.id}`);
       setEditingProperty(updatedPropRes.data);
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <Link to="/propiedades" target="_blank" className="btn-pill-outline" style={{ color: '#ffffff', borderColor: '#334155', fontSize: '0.85rem' }}>
+            <Link to="/propiedades" target="_blank" className="btn-pill-outline" style={{ color: '#0c1836', borderColor: '#334155', fontSize: '0.85rem' }}>
               <Eye size={16} /> Ver sitio público ↗
             </Link>
             <button onClick={logout} style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.15)', padding: '0.5rem 1rem', borderRadius: '9999px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -445,7 +445,7 @@ const AdminDashboard = () => {
                     <tr key={c.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                       <td style={{ padding: '0.75rem 1rem', color: '#64748b' }}>{new Date(c.created_at).toLocaleDateString('es-AR')}</td>
                       <td style={{ padding: '0.75rem 1rem', fontWeight: 700 }}>{c.first_name} {c.last_name || ''}</td>
-                      <td style={{ padding: '0.75rem 1rem' }}>{c.phone} <br/><small style={{ color: '#64748b' }}>{c.email}</small></td>
+                      <td style={{ padding: '0.75rem 1rem' }}>{c.phone} <br /><small style={{ color: '#64748b' }}>{c.email}</small></td>
                       <td style={{ padding: '0.75rem 1rem' }}>{c.service_interest}</td>
                       <td style={{ padding: '0.75rem 1rem', maxWidth: '300px' }}>{c.message}</td>
                     </tr>
