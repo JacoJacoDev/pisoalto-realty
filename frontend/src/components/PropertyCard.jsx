@@ -13,7 +13,7 @@ const PropertyCard = ({ property }) => {
     : `$ ${Number(property.price).toLocaleString('es-AR')}`;
 
   return (
-    <div className="card-rounded" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="card-rounded property-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', border: '1.5px solid #0c1836' }}>
       {/* Property Image Container */}
       <div style={{ position: 'relative', width: '100%', height: '210px', backgroundColor: '#f1f5f9', overflow: 'hidden' }}>
         <img
@@ -94,8 +94,8 @@ const PropertyCard = ({ property }) => {
         {/* Bottom Piso Alto Logo matching screenshot */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 22H7.5L12 12L16.5 22H22L12 2Z" fill="#0c1836"/>
-            <path d="M12 15L9.5 20H14.5L12 15Z" fill="#2563eb"/>
+            <path d="M12 2L2 22H7.5L12 12L16.5 22H22L12 2Z" fill="#0c1836" />
+            <path d="M12 15L9.5 20H14.5L12 15Z" fill="#2563eb" />
           </svg>
         </div>
       </div>

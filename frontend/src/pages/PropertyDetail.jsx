@@ -84,7 +84,7 @@ const PropertyDetail = () => {
     : ['Excelente iluminación', 'Excelente ubicación', 'Servicios al día', 'Escritura inmediata'];
 
   return (
-    <div style={{ padding: '2.5rem 0 5rem 0', backgroundColor: '#f8fafc', minHeight: '85vh' }}>
+    <div style={{ padding: '1.75rem 0 3rem 0', backgroundColor: '#f8fafc', minHeight: '85vh' }}>
       <div className="container">
         {/* Back Link */}
         <div style={{ marginBottom: '1.5rem' }}>
@@ -101,7 +101,7 @@ const PropertyDetail = () => {
         </div>
 
         {/* Top Header Card */}
-        <div className="card-rounded" style={{ padding: '1.75rem', marginBottom: '2rem' }}>
+        <div className="card-rounded property-container" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
           <div style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -153,7 +153,7 @@ const PropertyDetail = () => {
           {/* Left Main Content */}
           <div style={{ flexGrow: 1 }}>
             {/* Gallery Image Display */}
-            <div className="card-rounded" style={{ marginBottom: '2rem', overflow: 'hidden' }}>
+            <div className="card-rounded property-container" style={{ marginBottom: '1.5rem', overflow: 'hidden' }}>
               <div style={{ width: '100%', height: '420px', backgroundColor: '#e2e8f0' }}>
                 <img
                   src={getImageUrl(images[selectedImage]?.image_url)}
@@ -188,7 +188,7 @@ const PropertyDetail = () => {
             </div>
 
             {/* Specifications Bar */}
-            <div className="card-rounded" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+            <div className="card-rounded property-container" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0c1836', marginBottom: '1rem' }}>
                 Características Principales
               </h3>
@@ -225,7 +225,7 @@ const PropertyDetail = () => {
             </div>
 
             {/* Description Card */}
-            <div className="card-rounded" style={{ padding: '2rem', marginBottom: '2rem' }}>
+            <div className="card-rounded property-container" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0c1836', marginBottom: '1rem' }}>
                 Descripción
               </h3>
@@ -235,7 +235,7 @@ const PropertyDetail = () => {
             </div>
 
             {/* Features List */}
-            <div className="card-rounded" style={{ padding: '2rem' }}>
+            <div className="card-rounded property-container" style={{ padding: '1.5rem' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0c1836', marginBottom: '1.25rem' }}>
                 Comodidades y Detalles
               </h3>
@@ -266,7 +266,7 @@ const PropertyDetail = () => {
 
           {/* Right Sidebar Contact Box */}
           <div style={{ maxWidth: '380px', width: '100%' }}>
-            <div className="card-rounded" style={{ padding: '1.75rem', position: 'sticky', top: '90px' }}>
+            <div className="card-rounded property-container" style={{ padding: '1.5rem', position: 'sticky', top: '90px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0c1836', marginBottom: '0.5rem' }}>
                 ¿Te interesa esta propiedad?
               </h3>

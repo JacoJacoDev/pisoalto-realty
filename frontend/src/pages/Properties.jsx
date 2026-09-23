@@ -51,10 +51,10 @@ const Properties = () => {
   };
 
   return (
-    <div style={{ padding: '3rem 0 5rem 0', backgroundColor: '#ffffff', minHeight: '80vh' }}>
+    <div style={{ padding: '1.75rem 0 3rem 0', backgroundColor: '#ffffff', minHeight: '80vh' }}>
       <div className="container">
         {/* Main Section Header */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <h1 className="section-title" style={{ fontSize: '2.5rem' }}>
             Listado de Propiedades
           </h1>

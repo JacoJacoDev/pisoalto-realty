@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, UserCheck, Shield } from 'lucide-react';
+import { Menu, X, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
@@ -10,134 +10,91 @@ const Header = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  const linkStyle = (path) => ({
+    fontWeight: isActive(path) ? '700' : '500',
+    color: isActive(path) ? '#0c1836' : '#475569',
+    fontSize: '0.85rem',
+    transition: 'color 0.2s',
+    letterSpacing: '-0.01em'
+  });
+
   return (
     <header style={{
       backgroundColor: '#ffffff',
-      borderBottom: '1px solid #e2e8f0',
+      borderBottom: '1px solid #f1f5f9',
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
+      boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
     }}>
       <div className="container" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: '75px'
+        height: '56px'
       }}>
-        {/* Logo matching reference */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
-          <div style={{
-            width: '42px',
-            height: '42px',
-            backgroundColor: '#0c1836',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 10px rgba(12, 24, 54, 0.2)'
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 3L2 21H7.5L12 12L16.5 21H22L12 3Z" fill="#ffffff"/>
-              <path d="M12 15L9.5 20H14.5L12 15Z" fill="#2563eb"/>
-            </svg>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{
-              fontSize: '1.25rem',
-              fontWeight: 800,
-              color: '#0c1836',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1
-            }}>
-              PISO ALTO
-            </span>
-            <span style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              color: '#64748b',
-              letterSpacing: '0.2em'
-            }}>
-              REALTY
-            </span>
-          </div>
+        {/* Logo */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <img
+            src="/logo-pisoalto.png"
+            alt="Piso Alto Realty"
+            style={{
+              height: '50px',
+              width: 'auto',
+              objectFit: 'contain',
+              display: 'block'
+            }}
+          />
         </Link>
 
-        {/* Navigation Links Desktop */}
+        {/* Navigation */}
         <nav style={{
           display: 'none',
           alignItems: 'center',
-          gap: '2.5rem'
+          gap: '2rem'
         }} className="desktop-nav">
-          <Link to="/" style={{
-            fontWeight: isActive('/') ? '700' : '500',
-            color: isActive('/') ? '#0c1836' : '#475569',
-            fontSize: '0.95rem',
-            transition: 'color 0.2s'
-          }}>
-            Inicio
-          </Link>
-          <Link to="/propiedades" style={{
-            fontWeight: isActive('/propiedades') ? '700' : '500',
-            color: isActive('/propiedades') ? '#0c1836' : '#475569',
-            fontSize: '0.95rem',
-            transition: 'color 0.2s'
-          }}>
-            Propiedades
-          </Link>
-          <a href="/#destacadas" style={{
-            fontWeight: '500',
-            color: '#475569',
-            fontSize: '0.95rem'
-          }}>
-            Propiedades Destacadas
-          </a>
-          <a href="/#nosotros" style={{
-            fontWeight: '500',
-            color: '#475569',
-            fontSize: '0.95rem'
-          }}>
-            Nosotros
-          </a>
+          <Link to="/" style={linkStyle('/')}>Inicio</Link>
+          <Link to="/propiedades" style={linkStyle('/propiedades')}>Propiedades</Link>
+          <a href="/#destacadas" style={linkStyle(null)}>Destacadas</a>
+          <a href="/#nosotros" style={linkStyle(null)}>Nosotros</a>
         </nav>
 
-        {/* Header Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {isAuthenticated ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Link to="/admin" className="btn-pill-navy" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }}>
-                <Shield size={16} /> Panel Admin
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Link to="/admin" className="btn-pill-navy" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>
+                <Shield size={14} /> Admin
               </Link>
-              <button onClick={logout} style={{ fontSize: '0.85rem', color: '#ef4444', fontWeight: 600, padding: '0.5rem' }}>
+              <button onClick={logout} style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 600, padding: '0.4rem 0.5rem' }}>
                 Salir
               </button>
             </div>
           ) : (
             <>
-              <a href="/#contacto" className="btn-pill-navy" style={{ display: 'inline-flex', padding: '0.6rem 1.6rem', fontSize: '0.9rem' }}>
+              <a href="/#contacto" className="btn-pill-navy" style={{ padding: '0.4rem 1.2rem', fontSize: '0.8rem' }}>
                 Contáctanos
               </a>
               <Link to="/admin" style={{
-                color: '#64748b',
+                color: '#94a3b8',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0.5rem',
+                padding: '0.35rem',
                 borderRadius: '50%',
-                transition: 'background 0.2s'
+                transition: 'color 0.2s'
               }} title="Acceso Administrador">
-                <Shield size={18} />
+                <Shield size={16} />
               </Link>
             </>
           )}
 
-          {/* Mobile menu toggle button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{ display: 'flex', padding: '0.4rem', color: '#0c1836' }}
+            style={{ display: 'flex', padding: '0.3rem', color: '#0c1836' }}
             className="mobile-menu-btn"
           >
-            {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
@@ -147,24 +104,24 @@ const Header = () => {
         <div style={{
           backgroundColor: '#ffffff',
           borderBottom: '1px solid #e2e8f0',
-          padding: '1.25rem',
+          padding: '1rem 1.5rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1rem'
+          gap: '0.75rem'
         }}>
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#0c1836' }}>
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#0c1836', fontSize: '0.9rem' }}>
             Inicio
           </Link>
-          <Link to="/propiedades" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#0c1836' }}>
+          <Link to="/propiedades" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#0c1836', fontSize: '0.9rem' }}>
             Propiedades
           </Link>
-          <a href="/#destacadas" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#0c1836' }}>
+          <a href="/#destacadas" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#0c1836', fontSize: '0.9rem' }}>
             Propiedades Destacadas
           </a>
-          <a href="/#nosotros" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#0c1836' }}>
+          <a href="/#nosotros" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#0c1836', fontSize: '0.9rem' }}>
             Nosotros
           </a>
-          <a href="/#contacto" onClick={() => setMobileMenuOpen(false)} className="btn-pill-navy" style={{ width: '100%', marginTop: '0.5rem' }}>
+          <a href="/#contacto" onClick={() => setMobileMenuOpen(false)} className="btn-pill-navy" style={{ width: '100%', marginTop: '0.25rem', textAlign: 'center' }}>
             Contáctanos
           </a>
         </div>
