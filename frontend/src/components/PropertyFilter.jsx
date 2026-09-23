@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Home, Key, BedDouble } from 'lucide-react';
+import { MapPin, Home, Key, BedDouble, RotateCcw, SlidersHorizontal } from 'lucide-react';
 
 const PropertyFilter = ({ filters, onFilterChange, locations, propertyTypes, operationTypes, bedroomOptions }) => {
 
@@ -10,131 +10,228 @@ const PropertyFilter = ({ filters, onFilterChange, locations, propertyTypes, ope
     });
   };
 
+  const hasActiveFilters = filters.location !== 'All' ||
+    filters.property_type !== 'All' ||
+    filters.operation_type !== 'All' ||
+    filters.bedrooms !== 'All';
+
+  const resetFilters = () => {
+    onFilterChange({
+      ...filters,
+      location: 'All',
+      property_type: 'All',
+      operation_type: 'All',
+      bedrooms: 'All'
+    });
+  };
+
   return (
-    <div className="card-rounded" style={{ padding: '1.5rem', height: 'fit-content' }}>
-      <h3 style={{
-        fontSize: '1.25rem',
-        fontWeight: 800,
-        color: '#0c1836',
+    <div style={{
+      backgroundColor: '#ffffff',
+      border: '1.5px solid #e2e8f0',
+      borderRadius: '0.875rem',
+      padding: '1.25rem 1rem',
+      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
+      height: 'fit-content'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: '1rem',
-        textAlign: 'center',
-        borderBottom: '2px solid #e2e8f0',
+        borderBottom: '1px solid #e2e8f0',
         paddingBottom: '0.75rem'
       }}>
-        Filtros
-      </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          <SlidersHorizontal size={17} color="#0c1836" />
+          <h3 style={{
+            fontSize: '1rem',
+            fontWeight: 800,
+            color: '#0c1836',
+            margin: 0
+          }}>
+            Filtros
+          </h3>
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            onClick={resetFilters}
+            style={{
+              fontSize: '0.72rem',
+              color: '#ef4444',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              cursor: 'pointer'
+            }}
+            title="Restablecer todos los filtros"
+          >
+            <RotateCcw size={12} /> Limpiar
+          </button>
+        )}
+      </div>
 
       {/* 1. Ubicación */}
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: '1.15rem' }}>
         <h4 style={{
-          fontSize: '0.9rem',
+          fontSize: '0.8rem',
           fontWeight: 700,
           color: '#0c1836',
-          marginBottom: '0.75rem',
+          marginBottom: '0.5rem',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.4rem'
+          gap: '0.35rem'
         }}>
-          <MapPin size={16} color="#2563eb" /> Ubicación
+          <MapPin size={14} color="#2563eb" /> Ubicación
         </h4>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-          {locations.map(loc => (
-            <button
-              key={loc}
-              onClick={() => handlePillClick('location', loc)}
-              className={`btn-pill-outline ${filters.location === loc ? 'active' : ''}`}
-              style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
-            >
-              {loc}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+          {locations.map(loc => {
+            const isSelected = filters.location === loc;
+            return (
+              <button
+                key={loc}
+                onClick={() => handlePillClick('location', loc)}
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: '9999px',
+                  border: isSelected ? '1px solid #0c1836' : '1px solid #e2e8f0',
+                  backgroundColor: isSelected ? '#0c1836' : '#ffffff',
+                  color: isSelected ? '#ffffff' : '#475569',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {loc === 'All' ? 'Todas' : loc}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div style={{ height: '1px', backgroundColor: '#e2e8f0', margin: '1rem 0' }}></div>
+      <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '0.85rem 0' }}></div>
 
       {/* 2. Tipo de Propiedad */}
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: '1.15rem' }}>
         <h4 style={{
-          fontSize: '0.9rem',
+          fontSize: '0.8rem',
           fontWeight: 700,
           color: '#0c1836',
-          marginBottom: '0.75rem',
+          marginBottom: '0.5rem',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.4rem'
+          gap: '0.35rem'
         }}>
-          <Home size={16} color="#2563eb" /> Tipo de Propiedad
+          <Home size={14} color="#2563eb" /> Tipo de Propiedad
         </h4>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-          {propertyTypes.map(type => (
-            <button
-              key={type}
-              onClick={() => handlePillClick('property_type', type)}
-              className={`btn-pill-outline ${filters.property_type === type ? 'active' : ''}`}
-              style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
-            >
-              {type}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+          {propertyTypes.map(type => {
+            const isSelected = filters.property_type === type;
+            return (
+              <button
+                key={type}
+                onClick={() => handlePillClick('property_type', type)}
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: '9999px',
+                  border: isSelected ? '1px solid #0c1836' : '1px solid #e2e8f0',
+                  backgroundColor: isSelected ? '#0c1836' : '#ffffff',
+                  color: isSelected ? '#ffffff' : '#475569',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {type === 'All' ? 'Todos' : type}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div style={{ height: '1px', backgroundColor: '#e2e8f0', margin: '1rem 0' }}></div>
+      <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '0.85rem 0' }}></div>
 
       {/* 3. Tipo de Operacion */}
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: '1.15rem' }}>
         <h4 style={{
-          fontSize: '0.9rem',
+          fontSize: '0.8rem',
           fontWeight: 700,
           color: '#0c1836',
-          marginBottom: '0.75rem',
+          marginBottom: '0.5rem',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.4rem'
+          gap: '0.35rem'
         }}>
-          <Key size={16} color="#2563eb" /> Tipo de Operacion
+          <Key size={14} color="#2563eb" /> Operación
         </h4>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-          {operationTypes.map(op => (
-            <button
-              key={op}
-              onClick={() => handlePillClick('operation_type', op)}
-              className={`btn-pill-outline ${filters.operation_type === op ? 'active' : ''}`}
-              style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
-            >
-              {op}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+          {operationTypes.map(op => {
+            const isSelected = filters.operation_type === op;
+            return (
+              <button
+                key={op}
+                onClick={() => handlePillClick('operation_type', op)}
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: '9999px',
+                  border: isSelected ? '1px solid #0c1836' : '1px solid #e2e8f0',
+                  backgroundColor: isSelected ? '#0c1836' : '#ffffff',
+                  color: isSelected ? '#ffffff' : '#475569',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {op === 'All' ? 'Todas' : op}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div style={{ height: '1px', backgroundColor: '#e2e8f0', margin: '1rem 0' }}></div>
+      <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '0.85rem 0' }}></div>
 
       {/* 4. Cantidad de Dormitorios */}
       <div>
         <h4 style={{
-          fontSize: '0.9rem',
+          fontSize: '0.8rem',
           fontWeight: 700,
           color: '#0c1836',
-          marginBottom: '0.75rem',
+          marginBottom: '0.5rem',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.4rem'
+          gap: '0.35rem'
         }}>
-          <BedDouble size={16} color="#2563eb" /> Cantidad de Dormitorios
+          <BedDouble size={14} color="#2563eb" /> Dormitorios
         </h4>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-          {bedroomOptions.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => handlePillClick('bedrooms', opt.value)}
-              className={`btn-pill-outline ${filters.bedrooms === opt.value ? 'active' : ''}`}
-              style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+          {bedroomOptions.map(opt => {
+            const isSelected = filters.bedrooms === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => handlePillClick('bedrooms', opt.value)}
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: '9999px',
+                  border: isSelected ? '1px solid #0c1836' : '1px solid #e2e8f0',
+                  backgroundColor: isSelected ? '#0c1836' : '#ffffff',
+                  color: isSelected ? '#ffffff' : '#475569',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {opt.label === 'All' ? 'Todos' : opt.label}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bed, Bath, Maximize2 } from 'lucide-react';
+import { Bed, Bath, Maximize2, MapPin } from 'lucide-react';
 import { getImageUrl } from '../api/client';
 
 const PropertyCard = ({ property }) => {
@@ -12,91 +12,185 @@ const PropertyCard = ({ property }) => {
     ? `U$S ${Number(property.price).toLocaleString('es-AR')}`
     : `$ ${Number(property.price).toLocaleString('es-AR')}`;
 
+  const isVenta = property.operation_type === 'Venta';
+
   return (
-    <div className="card-rounded property-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', border: '1.5px solid #0c1836' }}>
+    <div className="property-card" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      backgroundColor: '#ffffff'
+    }}>
       {/* Property Image Container */}
-      <div style={{ position: 'relative', width: '100%', height: '210px', backgroundColor: '#f1f5f9', overflow: 'hidden' }}>
+      <div style={{
+        position: 'relative',
+        width: '100%',
+        height: '160px',
+        backgroundColor: '#f1f5f9',
+        overflow: 'hidden'
+      }}>
         <img
           src={getImageUrl(coverImage)}
           alt={property.title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transition: 'transform 0.35s ease'
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
         />
+
         {/* Type Badge top-left */}
-        <span className="badge-type">
+        <span style={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          backgroundColor: 'rgba(12, 24, 54, 0.82)',
+          backdropFilter: 'blur(6px)',
+          color: '#ffffff',
+          fontSize: '0.65rem',
+          fontWeight: 700,
+          padding: '2px 8px',
+          borderRadius: '9999px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em'
+        }}>
           {property.property_type}
+        </span>
+
+        {/* Operation Badge top-right */}
+        <span style={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          backgroundColor: isVenta ? '#1d4ed8' : '#059669',
+          color: '#ffffff',
+          fontSize: '0.65rem',
+          fontWeight: 700,
+          padding: '2px 8px',
+          borderRadius: '9999px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em'
+        }}>
+          {property.operation_type}
         </span>
       </div>
 
       {/* Property Info Content */}
-      <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-        {/* Price + Operation Type row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0c1836' }}>
-            {formattedPrice}
-          </span>
-          <span className="badge-operation">
-            {property.operation_type}
-          </span>
+      <div style={{
+        padding: '0.85rem 0.95rem 0.75rem',
+        display: 'flex',
+        flexDirection: 'column',
+        flexGrow: 1
+      }}>
+        {/* Price */}
+        <div style={{
+          fontSize: '1.15rem',
+          fontWeight: 800,
+          color: '#0c1836',
+          lineHeight: 1.2,
+          marginBottom: '0.25rem',
+          letterSpacing: '-0.02em'
+        }}>
+          {formattedPrice}
         </div>
 
-        {/* Address */}
-        <p style={{
+        {/* Title */}
+        <h3 style={{
           fontSize: '0.85rem',
-          color: '#475569',
-          fontWeight: 600,
-          marginBottom: '1rem',
+          fontWeight: 700,
+          color: '#1e293b',
+          lineHeight: 1.3,
+          marginBottom: '0.2rem',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis'
+        }} title={property.title}>
+          {property.title}
+        </h3>
+
+        {/* Location / Address */}
+        <p style={{
+          fontSize: '0.72rem',
+          color: '#64748b',
+          fontWeight: 500,
+          marginBottom: '0.65rem',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.25rem'
         }}>
-          {property.address}
+          <MapPin size={12} color="#94a3b8" />
+          <span>{property.address || property.location}</span>
         </p>
 
         {/* Specs Icons Row */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '1.25rem',
-          paddingTop: '0.75rem',
+          justifyContent: 'space-between',
+          padding: '0.45rem 0',
           borderTop: '1px solid #f1f5f9',
-          marginBottom: '1.25rem',
-          fontSize: '0.85rem',
-          color: '#334155',
+          borderBottom: '1px solid #f1f5f9',
+          marginBottom: '0.75rem',
+          fontSize: '0.72rem',
+          color: '#475569',
           fontWeight: 600
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Bed size={16} color="#475569" />
-            <span>{property.bedrooms}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }} title="Dormitorios">
+            <Bed size={13} color="#64748b" />
+            <span>{property.bedrooms} dor.</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Bath size={16} color="#475569" />
-            <span>{property.bathrooms}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }} title="Baños">
+            <Bath size={13} color="#64748b" />
+            <span>{property.bathrooms} bñ.</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Maximize2 size={16} color="#475569" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }} title="Superficie">
+            <Maximize2 size={13} color="#64748b" />
             <span>{property.surface_area} m²</span>
           </div>
         </div>
 
-        {/* Action Button */}
-        <div style={{ marginTop: 'auto', textAlign: 'center' }}>
+        {/* Action Button & Attached Piso Alto Icon */}
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
           <Link
             to={`/propiedades/${property.id}`}
             className="btn-pill-navy"
-            style={{ width: '100%', padding: '0.55rem', fontSize: '0.875rem' }}
+            style={{
+              width: '100%',
+              padding: '0.42rem 0.75rem',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              textAlign: 'center'
+            }}
           >
             Ver detalles
           </Link>
-        </div>
 
-        {/* Bottom Piso Alto Logo matching screenshot */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 22H7.5L12 12L16.5 22H22L12 2Z" fill="#0c1836" />
-            <path d="M12 15L9.5 20H14.5L12 15Z" fill="#2563eb" />
-          </svg>
+          {/* Piso Alto Attached Icon */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingTop: '0.2rem'
+          }}>
+            <img
+              src="/pisoalto-symbol.png"
+              alt="Piso Alto"
+              style={{
+                height: '18px',
+                width: 'auto',
+                opacity: 1,
+                objectFit: 'contain'
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>

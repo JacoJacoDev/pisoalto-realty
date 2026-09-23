@@ -192,16 +192,47 @@ img {
   transform: scale(1.03);
 }
 
-/* Property Containers with dark-blue border */
+/* Property Containers — Sleek, compact and modern */
 .property-card,
 .property-container {
-  border: 5px solid var(--navy-main) !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  border: 1.5px solid #e2e8f0 !important;
+  background-color: #ffffff;
+  border-radius: 0.875rem !important;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease !important;
 }
 
 .property-card:hover,
 .property-container:hover {
-  border-color: var(--blue-accent) !important;
+  transform: translateY(-4px);
+  border-color: #2563eb !important;
+  box-shadow: 0 12px 26px rgba(12, 24, 54, 0.12) !important;
+}
+
+.btn-pill-outline.active {
+  background-color: var(--navy-main) !important;
+  color: #ffffff !important;
+  border-color: var(--navy-main) !important;
+}
+
+/* 3-column properties listing layout */
+.properties-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 1080px) {
+  .properties-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .properties-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Dark variant card — for dark sections */
