@@ -75,49 +75,36 @@ const Properties = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '85vh', paddingBottom: '3.5rem' }}>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '85vh', paddingBottom: '2.5rem' }}>
 
-      {/* ── 1. Full-Width Black Bar (Home Page Visual Reference) ── */}
+      {/* ── 1. Page Header with Slow Entrance Animation ── */}
       <div style={{
-        width: '100%',
-        backgroundColor: '#000000',
-        padding: '0.45rem 1rem',
-        textAlign: 'center',
-        marginBottom: '1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.08)'
+        padding: '1.75rem 0 1.25rem',
+        background: 'radial-gradient(ellipse at 50% 0%, rgba(37, 99, 235, 0.06) 0%, rgba(255, 255, 255, 1) 75%)',
+        borderBottom: '1px solid #e2e8f0',
+        marginBottom: '1.5rem'
       }}>
-        <p style={{
-          fontSize: '0.72rem',
-          color: '#60a5fa',
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          margin: 0,
-          lineHeight: 1.2
-        }}>
-          Catálogo Inmobiliario · Córdoba &amp; Interior
-        </p>
-        <h1 style={{
-          fontSize: '1.65rem',
-          fontWeight: 800,
-          color: '#ffffff',
-          margin: '0.15rem 0 0 0',
-          letterSpacing: '-0.02em',
-          lineHeight: 1.2
-        }}>
-          Listado de Propiedades
-        </h1>
+        <div className="section-header animate-fade-in-up" style={{ marginBottom: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '0.65rem' }}>
+            <span className="section-pill-badge section-pill-badge-light" style={{ margin: 0 }}>
+              <Sparkles size={13} color="#2563eb" />
+              <span>Catálogo Inmobiliario · Córdoba &amp; Interior</span>
+            </span>
+          </div>
+          <h1 className="section-title">
+            Listado de Propiedades
+          </h1>
+          <p className="section-subtitle" style={{ marginBottom: 0 }}>
+            Explorá nuestra oferta de casas, departamentos, oficinas y terrenos con información detallada y actualizada.
+          </p>
+        </div>
       </div>
 
       {/* ── 2. Main Page Container ── */}
       <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 1.25rem' }}>
 
-        {/* Search bar & Quick Tags Strip (Hero Reference) */}
-        <div style={{
+        {/* Search bar & Quick Tags Strip */}
+        <div className="animate-fade-in-up delay-100" style={{
           backgroundColor: '#f8fafc',
           border: '1.5px solid #e2e8f0',
           borderRadius: '0.875rem',
@@ -234,7 +221,7 @@ const Properties = () => {
         {/* ── 3. Two-Column Layout (Sidebar + 3-Column Grid) ── */}
         <div className="properties-page-layout">
           {/* Left Sidebar Filter */}
-          <aside style={{ width: '100%' }}>
+          <aside className="animate-fade-in-up delay-150" style={{ width: '100%' }}>
             <PropertyFilter
               filters={filters}
               onFilterChange={setFilters}
@@ -248,7 +235,7 @@ const Properties = () => {
           {/* Right Property Cards Grid (3 per row) */}
           <main style={{ minWidth: 0 }}>
             {loading ? (
-              <div style={{
+              <div className="animate-fade-in" style={{
                 textAlign: 'center',
                 padding: '4rem 1.5rem',
                 backgroundColor: '#f8fafc',
@@ -263,7 +250,7 @@ const Properties = () => {
                 Cargando propiedades disponibles...
               </div>
             ) : properties.length === 0 ? (
-              <div style={{
+              <div className="animate-fade-in" style={{
                 backgroundColor: '#f8fafc',
                 border: '1.5px solid #e2e8f0',
                 borderRadius: '0.875rem',
@@ -288,7 +275,7 @@ const Properties = () => {
                 </button>
               </div>
             ) : (
-              <div className="properties-cards-grid">
+              <div className="properties-cards-grid animate-fade-in-up delay-200">
                 {properties.map(property => (
                   <PropertyCard key={property.id} property={property} />
                 ))}
