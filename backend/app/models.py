@@ -23,6 +23,7 @@ class Property(Base):
     currency = Column(String(10), nullable=False, default="USD") # USD, ARS
     location = Column(String(100), nullable=False, index=True) # Córdoba Capital, Las Varillas, Río Ceballos
     address = Column(String(255), nullable=False)
+    google_maps_url = Column(String(1000), nullable=True)
     description = Column(Text, nullable=True)
     bedrooms = Column(Integer, default=0)
     bathrooms = Column(Integer, default=0)

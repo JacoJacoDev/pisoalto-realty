@@ -44,6 +44,7 @@ const AdminDashboard = () => {
     currency: 'USD',
     location: 'Córdoba Capital',
     address: '',
+    google_maps_url: '',
     description: '',
     bedrooms: 2,
     bathrooms: 1,
@@ -144,6 +145,7 @@ const AdminDashboard = () => {
       currency: 'USD',
       location: 'Córdoba Capital',
       address: '',
+      google_maps_url: '',
       description: '',
       bedrooms: 2,
       bathrooms: 1,
@@ -167,6 +169,7 @@ const AdminDashboard = () => {
       currency: property.currency,
       location: property.location,
       address: property.address,
+      google_maps_url: property.google_maps_url || '',
       description: property.description || '',
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
@@ -637,6 +640,23 @@ const AdminDashboard = () => {
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
                 />
+              </div>
+
+              <div>
+                <label htmlFor="google-maps-url" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                  Ubicación en Google Maps (opcional)
+                </label>
+                <input
+                  id="google-maps-url"
+                  type="text"
+                  placeholder="Dirección exacta, coordenadas o enlace de Google Maps"
+                  value={formData.google_maps_url}
+                  onChange={(e) => setFormData({ ...formData, google_maps_url: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                />
+                <small style={{ display: 'block', color: '#64748b', marginTop: '0.35rem' }}>
+                  Ingresá la dirección exacta o pegá el enlace de Google Maps. Si el enlace incluye coordenadas, el mapa marcará ese punto.
+                </small>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>

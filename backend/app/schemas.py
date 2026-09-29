@@ -47,6 +47,7 @@ class PropertyBase(BaseModel):
     currency: str = "USD" # USD, ARS
     location: str
     address: str
+    google_maps_url: Optional[str] = None
     description: Optional[str] = None
     bedrooms: int = 0
     bathrooms: int = 0
@@ -68,6 +69,7 @@ class PropertyUpdate(BaseModel):
     currency: Optional[str] = None
     location: Optional[str] = None
     address: Optional[str] = None
+    google_maps_url: Optional[str] = None
     description: Optional[str] = None
     bedrooms: Optional[int] = None
     bathrooms: Optional[int] = None

@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 from app.config import settings
 from app.database import engine, Base, SessionLocal
 from app.seed import seed_db
@@ -44,6 +44,12 @@ def startup_event():
             raise RuntimeError("Production UPLOAD_DIR must be an existing writable persistent volume.")
     # Ensure database schema is created and seeded on startup
     Base.metadata.create_all(bind=engine)
+    # create_all does not add columns to existing tables, so keep deployments
+    # with an existing properties table compatible with the optional map URL.
+    property_columns = {column["name"] for column in inspect(engine).get_columns("properties")}
+    if "google_maps_url" not in property_columns:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE properties ADD COLUMN google_maps_url VARCHAR(1000)"))
     db = SessionLocal()
     try:
         seed_db(db)

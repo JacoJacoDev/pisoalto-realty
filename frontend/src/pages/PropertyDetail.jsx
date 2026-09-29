@@ -7,6 +7,37 @@ import {
 } from 'lucide-react';
 import client, { getImageUrl } from '../api/client';
 
+const getGoogleMapsLocation = (value, fallbackAddress) => {
+  const input = value?.trim();
+  if (!input) return null;
+
+  let locationQuery = input;
+  let openUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(input)}`;
+
+  try {
+    const url = new URL(input);
+    if (['google.com', 'www.google.com', 'maps.google.com', 'maps.app.goo.gl', 'goo.gl'].includes(url.hostname)) {
+      openUrl = url.href;
+      const query = url.searchParams.get('query') || url.searchParams.get('q');
+      const coordinates = url.href.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
+        || url.href.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+      const place = url.pathname.match(/\/maps\/place\/([^/]+)/)?.[1];
+
+      if (query) locationQuery = query;
+      else if (coordinates) locationQuery = `${coordinates[1]},${coordinates[2]}`;
+      else if (place) locationQuery = decodeURIComponent(place.replace(/\+/g, ' '));
+      else if (fallbackAddress) locationQuery = fallbackAddress;
+    }
+  } catch {
+    // También se acepta una dirección escrita directamente, sin URL.
+  }
+
+  return {
+    embedUrl: `https://www.google.com/maps?q=${encodeURIComponent(locationQuery)}&output=embed`,
+    openUrl
+  };
+};
+
 const PropertyDetail = () => {
   const { id } = useParams();
   const [property, setProperty] = useState(null);
@@ -108,6 +139,10 @@ const PropertyDetail = () => {
     : ['Excelente iluminación', 'Excelente ubicación', 'Servicios al día', 'Escritura inmediata'];
 
   const isVenta = property.operation_type === 'Venta';
+  const googleMapsLocation = getGoogleMapsLocation(
+    property.google_maps_url,
+    `${property.address}, ${property.location}`
+  );
 
   const prevImg = () => setSelectedImage(prev => Math.max(prev - 1, 0));
   const nextImg = () => setSelectedImage(prev => Math.min(prev + 1, images.length - 1));
@@ -371,6 +406,34 @@ const PropertyDetail = () => {
                 {property.description || 'Sin descripción disponible para esta propiedad.'}
               </p>
             </div>
+
+            {googleMapsLocation && (
+              <section className="animate-fade-in-up delay-300" style={{
+                background: '#ffffff', border: '1.5px solid #e2e8f0',
+                borderRadius: '1.25rem', overflow: 'hidden',
+                boxShadow: '0 4px 20px rgba(12,24,54,0.05)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', padding: '1.25rem 1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <MapPin size={18} color="#2563eb" />
+                    <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0c1836' }}>Ubicación</h3>
+                  </div>
+                  <a href={googleMapsLocation.openUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>
+                    Abrir en Google Maps ↗
+                  </a>
+                </div>
+                <iframe
+                  title={`Mapa de ubicación: ${property.title}`}
+                  src={googleMapsLocation.embedUrl}
+                  width="100%"
+                  height="360"
+                  style={{ display: 'block', border: 0 }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </section>
+            )}
 
             {/* ─── Features ─── */}
             {featuresList.length > 0 && (
