@@ -1,7 +1,10 @@
+import io
 import os
 import uuid
+import warnings
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from PIL import Image, ImageOps, UnidentifiedImageError
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas, auth
@@ -9,24 +12,32 @@ from app.config import settings
 
 router = APIRouter(prefix="/properties", tags=["properties"])
 
+MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024
+MAX_IMAGES_PER_REQUEST = 10
+MAX_IMAGES_PER_PROPERTY = 50
+MAX_IMAGE_PIXELS = 20_000_000
+MAX_TOTAL_UPLOAD_PIXELS = 40_000_000
+MAX_TOTAL_UPLOAD_SIZE_BYTES = 30 * 1024 * 1024
+IMAGE_FORMATS = {
+    "JPEG": (".jpg", "JPEG"),
+    "PNG": (".png", "PNG"),
+    "WEBP": (".webp", "WEBP"),
+}
+
 @router.get("", response_model=List[schemas.PropertyResponse])
 def get_properties(
     location: Optional[str] = None,
     property_type: Optional[str] = None,
     operation_type: Optional[str] = None,
     bedrooms: Optional[int] = None,
-    is_published: Optional[bool] = None,
     is_featured: Optional[bool] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(models.Property)
 
-    # Public queries default to published only unless explicitly requested
-    if is_published is not None:
-        query = query.filter(models.Property.is_published == is_published)
-    else:
-        query = query.filter(models.Property.is_published == True)
+    # Public queries must never expose draft properties.
+    query = query.filter(models.Property.is_published.is_(True))
 
     if location and location.lower() != "all" and location.strip():
         query = query.filter(models.Property.location.ilike(f"%{location.strip()}%"))
@@ -70,7 +81,10 @@ def get_admin_properties(
 
 @router.get("/{property_id}", response_model=schemas.PropertyResponse)
 def get_property(property_id: int, db: Session = Depends(get_db)):
-    prop = db.query(models.Property).filter(models.Property.id == property_id).first()
+    prop = db.query(models.Property).filter(
+        models.Property.id == property_id,
+        models.Property.is_published.is_(True),
+    ).first()
     if not prop:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
     return prop
@@ -135,35 +149,96 @@ async def upload_property_images(
     if not db_prop:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
 
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    if not files or len(files) > MAX_IMAGES_PER_REQUEST:
+        raise HTTPException(status_code=413, detail=f"Suba entre 1 y {MAX_IMAGES_PER_REQUEST} imágenes por solicitud.")
+
     existing_images_count = len(db_prop.images)
+    if existing_images_count + len(files) > MAX_IMAGES_PER_PROPERTY:
+        raise HTTPException(status_code=413, detail=f"Cada propiedad admite hasta {MAX_IMAGES_PER_PROPERTY} imágenes.")
+
+    validated_images = []
+    total_upload_pixels = 0
+    total_input_size = 0
+    total_upload_size = 0
+    for file in files:
+        content = await file.read(MAX_IMAGE_SIZE_BYTES + 1)
+        if len(content) > MAX_IMAGE_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail="Cada imagen debe pesar 10 MB o menos.")
+        total_input_size += len(content)
+        if total_input_size > MAX_TOTAL_UPLOAD_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail="El tamaño total de las imágenes excede 30 MB.")
+
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", Image.DecompressionBombWarning)
+                with Image.open(io.BytesIO(content)) as image:
+                    image_format = image.format
+                    if image_format not in IMAGE_FORMATS:
+                        raise HTTPException(status_code=415, detail="Formato inválido. Use JPG, PNG o WEBP.")
+                    if image.width * image.height > MAX_IMAGE_PIXELS:
+                        raise HTTPException(status_code=413, detail="La imagen excede el límite de resolución permitido.")
+                    total_upload_pixels += image.width * image.height
+                    if total_upload_pixels > MAX_TOTAL_UPLOAD_PIXELS:
+                        raise HTTPException(status_code=413, detail="La resolución total de las imágenes excede el límite permitido.")
+                    image.load()
+                    normalized = ImageOps.exif_transpose(image)
+                    extension, output_format = IMAGE_FORMATS[image_format]
+                    if output_format == "JPEG":
+                        normalized = normalized.convert("RGB")
+                    output = io.BytesIO()
+                    if output_format == "JPEG":
+                        normalized.save(output, format=output_format, quality=90, optimize=True)
+                    elif output_format == "PNG":
+                        normalized.save(output, format=output_format, optimize=True)
+                    else:
+                        normalized.save(output, format=output_format, quality=90, method=6)
+                    normalized_content = output.getvalue()
+                    total_upload_size += len(normalized_content)
+                    if total_upload_size > MAX_TOTAL_UPLOAD_SIZE_BYTES:
+                        raise HTTPException(status_code=413, detail="El tamaño total de las imágenes excede 30 MB.")
+                    validated_images.append((normalized_content, extension))
+        except HTTPException:
+            raise
+        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
+            raise HTTPException(status_code=415, detail="El archivo no es una imagen válida o excede la resolución permitida.") from exc
+
+    if settings.ENVIRONMENT.lower() == "production":
+        if not os.path.isdir(settings.UPLOAD_DIR) or not os.access(settings.UPLOAD_DIR, os.W_OK):
+            raise HTTPException(status_code=503, detail="El almacenamiento persistente de imágenes no está disponible.")
+    else:
+        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     uploaded_records = []
+    created_paths = []
 
-    for idx, file in enumerate(files):
-        ext = os.path.splitext(file.filename)[1].lower()
-        if ext not in [".jpg", ".jpeg", ".png", ".webp", ".gif"]:
-            ext = ".jpg"
-        
-        filename = f"prop_{property_id}_{uuid.uuid4().hex}{ext}"
-        filepath = os.path.join(settings.UPLOAD_DIR, filename)
+    try:
+        for idx, (content, ext) in enumerate(validated_images):
+            filename = f"prop_{property_id}_{uuid.uuid4().hex}{ext}"
+            filepath = os.path.join(settings.UPLOAD_DIR, filename)
 
-        with open(filepath, "wb") as f:
-            content = await file.read()
-            f.write(content)
+            with open(filepath, "wb") as f:
+                f.write(content)
+            created_paths.append(filepath)
 
-        relative_url = f"/uploads/{filename}"
-        is_cover = (existing_images_count == 0 and idx == 0)
+            relative_url = f"/uploads/{filename}"
+            is_cover = (existing_images_count == 0 and idx == 0)
+            img_record = models.PropertyImage(
+                property_id=property_id,
+                image_url=relative_url,
+                is_cover=is_cover,
+                display_order=existing_images_count + idx
+            )
+            db.add(img_record)
+            uploaded_records.append(img_record)
 
-        img_record = models.PropertyImage(
-            property_id=property_id,
-            image_url=relative_url,
-            is_cover=is_cover,
-            display_order=existing_images_count + idx
-        )
-        db.add(img_record)
-        uploaded_records.append(img_record)
-
-    db.commit()
+        db.commit()
+    except Exception:
+        db.rollback()
+        for filepath in created_paths:
+            try:
+                os.remove(filepath)
+            except OSError:
+                pass
+        raise
     for record in uploaded_records:
         db.refresh(record)
 

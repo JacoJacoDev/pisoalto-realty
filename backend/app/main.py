@@ -1,7 +1,9 @@
 import os
-from fastapi import FastAPI
+from pathlib import Path
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 from app.config import settings
 from app.database import engine, Base, SessionLocal
 from app.seed import seed_db
@@ -24,9 +26,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ensure uploads directory exists and mount static route
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+# Local development may create its upload directory. Production must mount it first.
+if settings.ENVIRONMENT.lower() != "production":
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR, check_dir=False), name="uploads")
 
 # Include API Routers
 app.include_router(auth.router, prefix=settings.API_V1_STR)
@@ -35,6 +38,10 @@ app.include_router(inquiries.router, prefix=settings.API_V1_STR)
 
 @app.on_event("startup")
 def startup_event():
+    if settings.ENVIRONMENT.lower() == "production":
+        upload_path = Path(settings.UPLOAD_DIR)
+        if not upload_path.is_dir() or not os.access(upload_path, os.W_OK):
+            raise RuntimeError("Production UPLOAD_DIR must be an existing writable persistent volume.")
     # Ensure database schema is created and seeded on startup
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
@@ -54,4 +61,9 @@ def root():
 
 @app.get("/health")
 def health_check():
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
     return {"status": "healthy"}

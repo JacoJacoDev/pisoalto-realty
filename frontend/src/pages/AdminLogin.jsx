@@ -91,7 +91,7 @@ const AdminLogin = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@pisoaltorealty.com"
+                placeholder="jacobopuntonet@outlook.com"
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem 0.75rem 2.5rem',
@@ -138,7 +138,7 @@ const AdminLogin = () => {
         </form>
 
         <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8' }}>
-          Credenciales por defecto: admin@pisoaltorealty.com
+          Acceso de administrador: jacobopuntonet@outlook.com
         </div>
       </div>
     </div>

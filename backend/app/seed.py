@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.database import engine, Base, SessionLocal
 from app.models import User, Property, PropertyImage
-from app.auth import get_password_hash
+from app.auth import get_password_hash, verify_password
 from app.config import settings
 
 def seed_db(db: Session):
@@ -19,6 +19,10 @@ def seed_db(db: Session):
         db.add(admin)
         db.commit()
         print(f"[SEED] Created initial admin: {settings.ADMIN_EMAIL}")
+    elif not verify_password(settings.ADMIN_PASSWORD, admin.hashed_password):
+        admin.hashed_password = get_password_hash(settings.ADMIN_PASSWORD)
+        db.commit()
+        print(f"[SEED] Rotated initial admin password for: {settings.ADMIN_EMAIL}")
 
     # 2. Seed Initial Properties matching reference screenshots
     if db.query(Property).count() == 0:
