@@ -9,17 +9,20 @@ const Properties = () => {
   const [searchParams] = useSearchParams();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectorOptions, setSelectorOptions] = useState([]);
 
-  // Filter options
-  const locations = ['All', 'Córdoba Capital', 'Las Varillas', 'Río Ceballos'];
-  const propertyTypes = ['All', 'Casa', 'Cochera', 'Departamento', 'Oficina'];
-  const operationTypes = ['All', 'Alquiler', 'Venta'];
+  const getOptions = (category) => ['All', ...selectorOptions
+    .filter(option => option.category === category)
+    .map(option => option.value)];
+  const locations = getOptions('location');
+  const propertyTypes = getOptions('property_type');
+  const operationTypes = getOptions('operation_type');
   const bedroomOptions = [
     { label: 'All', value: 'All' },
-    { label: '0 Dor.', value: 0 },
-    { label: '1 Dor.', value: 1 },
-    { label: '2 Dor.', value: 2 },
-    { label: '4 Dor.', value: 4 }
+    ...selectorOptions
+      .filter(option => option.category === 'bedrooms')
+      .sort((a, b) => Number(a.value) - Number(b.value))
+      .map(option => ({ label: `${option.value} Dor.`, value: Number(option.value) }))
   ];
 
   const [filters, setFilters] = useState(() => ({
@@ -44,6 +47,18 @@ const Properties = () => {
       search: srch
     }));
   }, [searchParams]);
+
+  useEffect(() => {
+    const fetchSelectorOptions = async () => {
+      try {
+        const res = await client.get('/properties/options');
+        setSelectorOptions(res.data);
+      } catch (err) {
+        console.error('Error fetching property selector options:', err);
+      }
+    };
+    fetchSelectorOptions();
+  }, []);
 
   useEffect(() => {
     fetchProperties();
@@ -189,11 +204,9 @@ const Properties = () => {
             </span>
             {[
               { label: 'Todas', patch: { location: 'All', property_type: 'All', operation_type: 'All', bedrooms: 'All', search: '' } },
-              { label: 'Casas en Venta', patch: { operation_type: 'Venta', property_type: 'Casa' } },
-              { label: 'Departamentos', patch: { property_type: 'Departamento' } },
-              { label: 'Alquileres', patch: { operation_type: 'Alquiler' } },
-              { label: 'Córdoba Capital', patch: { location: 'Córdoba Capital' } },
-              { label: 'Las Varillas', patch: { location: 'Las Varillas' } },
+              ...operationTypes.filter(value => value !== 'All').map(value => ({ label: value, patch: { operation_type: value } })),
+              ...propertyTypes.filter(value => value !== 'All').slice(0, 2).map(value => ({ label: value, patch: { property_type: value } })),
+              ...locations.filter(value => value !== 'All').slice(0, 2).map(value => ({ label: value, patch: { location: value } })),
             ].map((tag, i) => (
               <button
                 key={i}

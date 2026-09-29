@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Award,
   Key,
+  BedDouble,
   Houses
 } from 'lucide-react';
 import client, { getImageUrl } from '../api/client';
@@ -30,6 +31,7 @@ import PropertyCard from '../components/PropertyCard';
 const Home = () => {
   const navigate = useNavigate();
   const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [selectorOptions, setSelectorOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [featuredFilter, setFeaturedFilter] = useState('All'); // 'All', 'Venta', 'Alquiler'
 
@@ -56,9 +58,10 @@ const Home = () => {
 
   // Hero search bar state
   const [heroSearch, setHeroSearch] = useState({
-    query: '',
+    location: 'All',
     operation_type: 'All', // 'All', 'Venta', 'Alquiler'
-    property_type: 'All'
+    property_type: 'All',
+    bedrooms: 'All'
   });
 
   // Active tab in Hero search
@@ -99,6 +102,18 @@ const Home = () => {
       }
     };
     fetchFeatured();
+  }, []);
+
+  useEffect(() => {
+    const fetchSelectorOptions = async () => {
+      try {
+        const res = await client.get('/properties/options');
+        setSelectorOptions(res.data);
+      } catch (err) {
+        console.error('Error fetching property selector options:', err);
+      }
+    };
+    fetchSelectorOptions();
   }, []);
 
   const handleValuationSubmit = async (e) => {
@@ -150,8 +165,11 @@ const Home = () => {
     if (heroSearch.property_type !== 'All') {
       params.set('property_type', heroSearch.property_type);
     }
-    if (heroSearch.query.trim()) {
-      params.set('search', heroSearch.query.trim());
+    if (heroSearch.location !== 'All') {
+      params.set('location', heroSearch.location);
+    }
+    if (heroSearch.bedrooms !== 'All') {
+      params.set('bedrooms', heroSearch.bedrooms);
     }
     navigate(`/propiedades?${params.toString()}`);
   };
@@ -356,8 +374,9 @@ const Home = () => {
                 }}>
                   {[
                     { id: 'All', label: 'Todas' },
-                    { id: 'Venta', label: 'Comprar' },
-                    { id: 'Alquiler', label: 'Alquilar' }
+                    ...selectorOptions
+                      .filter(option => option.category === 'operation_type')
+                      .map(option => ({ id: option.value, label: option.value }))
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -369,8 +388,7 @@ const Home = () => {
                         setHeroSearch(s => ({ ...s, operation_type: tab.id }));
                       }}
                     >
-                      {tab.id === 'Venta' && <HomeIcon size={12} />}
-                      {tab.id === 'Alquiler' && <Key size={12} />}
+                      {tab.id !== 'All' && <HomeIcon size={12} />}
                       {tab.label}
                     </button>
                   ))}
@@ -381,7 +399,7 @@ const Home = () => {
                   onSubmit={handleHeroSearch}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr) auto',
+                    gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.7fr) auto',
                     gap: '0.4rem',
                     alignItems: 'center',
                     padding: '0.45rem 0.2rem 0.15rem'
@@ -398,11 +416,9 @@ const Home = () => {
                     padding: '0.45rem 0.65rem'
                   }}>
                     <MapPin size={15} color="#2563eb" style={{ flexShrink: 0 }} />
-                    <input
-                      type="text"
-                      placeholder="Barrio o ciudad..."
-                      value={heroSearch.query}
-                      onChange={e => setHeroSearch(s => ({ ...s, query: e.target.value }))}
+                    <select
+                      value={heroSearch.location}
+                      onChange={e => setHeroSearch(s => ({ ...s, location: e.target.value }))}
                       style={{
                         width: '100%',
                         background: 'transparent',
@@ -413,7 +429,12 @@ const Home = () => {
                         outline: 'none',
                         padding: 0
                       }}
-                    />
+                    >
+                      <option value="All">Barrio o ciudad...</option>
+                      {selectorOptions
+                        .filter(option => option.category === 'location')
+                        .map(option => <option key={option.id} value={option.value}>{option.value}</option>)}
+                    </select>
                   </div>
 
                   {/* Property Type Selector */}
@@ -443,12 +464,32 @@ const Home = () => {
                       }}
                     >
                       <option value="All">Tipo inmueble</option>
-                      <option value="Departamento">Departamento</option>
-                      <option value="Casa">Casa</option>
-                      <option value="Cochera">Cochera</option>
-                      <option value="Oficina">Oficina</option>
-                      <option value="Terreno">Terreno</option>
-                      <option value="Local">Local</option>
+                      {selectorOptions
+                        .filter(option => option.category === 'property_type')
+                        .map(option => <option key={option.id} value={option.value}>{option.value}</option>)}
+                    </select>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '0.65rem',
+                    padding: '0.45rem 0.65rem'
+                  }}>
+                    <BedDouble size={15} color="#2563eb" style={{ flexShrink: 0 }} />
+                    <select
+                      value={heroSearch.bedrooms}
+                      onChange={e => setHeroSearch(s => ({ ...s, bedrooms: e.target.value }))}
+                      style={{ width: '100%', background: 'transparent', border: 'none', color: '#0f172a', fontSize: '0.8rem', fontWeight: 600, outline: 'none', cursor: 'pointer', padding: 0 }}
+                    >
+                      <option value="All">Dormitorios</option>
+                      {selectorOptions
+                        .filter(option => option.category === 'bedrooms')
+                        .sort((a, b) => Number(a.value) - Number(b.value))
+                        .map(option => <option key={option.id} value={option.value}>{option.value} Dor.</option>)}
                     </select>
                   </div>
 

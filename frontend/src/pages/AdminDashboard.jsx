@@ -29,6 +29,7 @@ const AdminDashboard = () => {
   const [properties, setProperties] = useState([]);
   const [valuations, setValuations] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [selectorOptions, setSelectorOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -60,6 +61,58 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchData();
   }, [activeTab]);
+
+  useEffect(() => {
+    fetchSelectorOptions();
+  }, []);
+
+  const fetchSelectorOptions = async () => {
+    try {
+      const res = await client.get('/properties/options');
+      setSelectorOptions(res.data);
+    } catch (err) {
+      console.error('Error fetching property selector options:', err);
+    }
+  };
+
+  const getSelectorOptions = (category) => selectorOptions
+    .filter(option => option.category === category)
+    .map(option => option.value);
+
+  const handleAddSelectorOption = async (category, label) => {
+    const value = window.prompt(`Nueva opción para ${label}:`);
+    if (!value?.trim()) return;
+
+    try {
+      const res = await client.post('/properties/options', { category, value: value.trim() });
+      setSelectorOptions(current => {
+        const withoutDuplicate = current.filter(option => !(
+          option.category === res.data.category &&
+          option.value.toLocaleLowerCase() === res.data.value.toLocaleLowerCase()
+        ));
+        return [...withoutDuplicate, res.data].sort((a, b) => a.value.localeCompare(b.value, 'es'));
+      });
+      setFormData(current => ({ ...current, [category]: res.data.value }));
+    } catch (err) {
+      alert('No se pudo agregar la opción. Intente nuevamente.');
+    }
+  };
+
+  const handleDeleteSelectorOption = async (category, label) => {
+    const option = selectorOptions.find(item => item.category === category && item.value === String(formData[category]));
+    if (!option) return;
+    if (!window.confirm(`¿Eliminar permanentemente la opción "${option.value}" de ${label}?`)) return;
+
+    try {
+      await client.delete(`/properties/options/${option.id}`);
+      const remainingOptions = selectorOptions.filter(item => item.id !== option.id);
+      setSelectorOptions(remainingOptions);
+      const replacement = remainingOptions.find(item => item.category === category);
+      setFormData(current => ({ ...current, [category]: replacement ? replacement.value : '' }));
+    } catch (err) {
+      alert('No se pudo eliminar la opción. Intente nuevamente.');
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -502,50 +555,43 @@ const AdminDashboard = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                  Tipo de Propiedad <span><button type="button" onClick={() => handleAddSelectorOption('property_type', 'Tipo de Propiedad')} style={{ color: '#2563eb', fontSize: '0.75rem', fontWeight: 700 }}>+ Agregar</button> <button type="button" onClick={() => handleDeleteSelectorOption('property_type', 'Tipo de Propiedad')} style={{ color: '#dc2626', fontSize: '0.75rem', fontWeight: 700 }}>Eliminar</button></span>
+                </label>
+                <select
+                  value={formData.property_type}
+                  onChange={(e) => setFormData({ ...formData, property_type: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem', backgroundColor: '#fff' }}
+                >
+                  {getSelectorOptions('property_type').map(value => <option key={value} value={value}>{value}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                    Operación
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    Operación <span><button type="button" onClick={() => handleAddSelectorOption('operation_type', 'Operación')} style={{ color: '#2563eb', fontSize: '0.75rem', fontWeight: 700 }}>+ Agregar</button> <button type="button" onClick={() => handleDeleteSelectorOption('operation_type', 'Operación')} style={{ color: '#dc2626', fontSize: '0.75rem', fontWeight: 700 }}>Eliminar</button></span>
                   </label>
                   <select
                     value={formData.operation_type}
                     onChange={(e) => setFormData({ ...formData, operation_type: e.target.value })}
                     style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem', backgroundColor: '#fff' }}
                   >
-                    <option value="Venta">Venta</option>
-                    <option value="Alquiler">Alquiler</option>
+                    {getSelectorOptions('operation_type').map(value => <option key={value} value={value}>{value}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                    Tipo de Propiedad
-                  </label>
-                  <select
-                    value={formData.property_type}
-                    onChange={(e) => setFormData({ ...formData, property_type: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem', backgroundColor: '#fff' }}
-                  >
-                    <option value="Casa">Casa</option>
-                    <option value="Departamento">Departamento</option>
-                    <option value="Cochera">Cochera</option>
-                    <option value="Oficina">Oficina</option>
-                    <option value="Terreno">Terreno</option>
-                    <option value="Local">Local</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                    Moneda
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    Moneda <span><button type="button" onClick={() => handleAddSelectorOption('currency', 'Moneda')} style={{ color: '#2563eb', fontSize: '0.75rem', fontWeight: 700 }}>+ Agregar</button> <button type="button" onClick={() => handleDeleteSelectorOption('currency', 'Moneda')} style={{ color: '#dc2626', fontSize: '0.75rem', fontWeight: 700 }}>Eliminar</button></span>
                   </label>
                   <select
                     value={formData.currency}
                     onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                     style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem', backgroundColor: '#fff' }}
                   >
-                    <option value="USD">USD (U$S)</option>
-                    <option value="ARS">ARS ($)</option>
+                    {getSelectorOptions('currency').map(value => <option key={value} value={value}>{value}</option>)}
                   </select>
                 </div>
               </div>
@@ -566,16 +612,17 @@ const AdminDashboard = () => {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                    Ubicación / Ciudad
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    Ubicación / Ciudad <span><button type="button" onClick={() => handleAddSelectorOption('location', 'Ubicación / Ciudad')} style={{ color: '#2563eb', fontSize: '0.75rem', fontWeight: 700 }}>+ Agregar</button> <button type="button" onClick={() => handleDeleteSelectorOption('location', 'Ubicación / Ciudad')} style={{ color: '#dc2626', fontSize: '0.75rem', fontWeight: 700 }}>Eliminar</button></span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
+                    style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem', backgroundColor: '#fff' }}
+                  >
+                    {getSelectorOptions('location').map(value => <option key={value} value={value}>{value}</option>)}
+                  </select>
                 </div>
               </div>
 
@@ -594,15 +641,18 @@ const AdminDashboard = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                    Dormitorios
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    Dormitorios <span><button type="button" onClick={() => handleAddSelectorOption('bedrooms', 'Dormitorios')} style={{ color: '#2563eb', fontSize: '0.75rem', fontWeight: 700 }}>+ Agregar</button> <button type="button" onClick={() => handleDeleteSelectorOption('bedrooms', 'Dormitorios')} style={{ color: '#dc2626', fontSize: '0.75rem', fontWeight: 700 }}>Eliminar</button></span>
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={formData.bedrooms}
                     onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
+                    style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', fontSize: '0.9rem', backgroundColor: '#fff' }}
+                  >
+                    {getSelectorOptions('bedrooms')
+                      .sort((a, b) => Number(a) - Number(b))
+                      .map(value => <option key={value} value={value}>{value}</option>)}
+                  </select>
                 </div>
 
                 <div>

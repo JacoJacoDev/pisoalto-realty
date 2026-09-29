@@ -24,6 +24,60 @@ IMAGE_FORMATS = {
     "WEBP": (".webp", "WEBP"),
 }
 
+SELECTOR_CATEGORIES = ("operation_type", "property_type", "currency", "location", "bedrooms")
+
+def ensure_property_selector_options(db: Session, prop: models.Property):
+    for category in SELECTOR_CATEGORIES:
+        value = str(getattr(prop, category, "")).strip()
+        if value and not db.query(models.PropertySelectorOption).filter(
+            models.PropertySelectorOption.category == category,
+            models.PropertySelectorOption.value.ilike(value),
+        ).first():
+            db.add(models.PropertySelectorOption(category=category, value=value))
+
+@router.get("/options", response_model=List[schemas.PropertySelectorOptionResponse])
+def get_property_selector_options(db: Session = Depends(get_db)):
+    return db.query(models.PropertySelectorOption).order_by(
+        models.PropertySelectorOption.category,
+        models.PropertySelectorOption.value,
+    ).all()
+
+@router.post("/options", response_model=schemas.PropertySelectorOptionResponse, status_code=status.HTTP_201_CREATED)
+def create_property_selector_option(
+    option_in: schemas.PropertySelectorOptionCreate,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    value = option_in.value.strip()
+    if not value:
+        raise HTTPException(status_code=422, detail="La opción no puede estar vacía.")
+
+    existing_option = db.query(models.PropertySelectorOption).filter(
+        models.PropertySelectorOption.category == option_in.category,
+        models.PropertySelectorOption.value.ilike(value),
+    ).first()
+    if existing_option:
+        return existing_option
+
+    option = models.PropertySelectorOption(category=option_in.category, value=value)
+    db.add(option)
+    db.commit()
+    db.refresh(option)
+    return option
+
+@router.delete("/options/{option_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_property_selector_option(
+    option_id: int,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    option = db.query(models.PropertySelectorOption).filter(models.PropertySelectorOption.id == option_id).first()
+    if not option:
+        raise HTTPException(status_code=404, detail="Opción no encontrada.")
+    db.delete(option)
+    db.commit()
+    return None
+
 @router.get("", response_model=List[schemas.PropertyResponse])
 def get_properties(
     location: Optional[str] = None,
@@ -49,10 +103,7 @@ def get_properties(
         query = query.filter(models.Property.operation_type.ilike(f"%{operation_type.strip()}%"))
 
     if bedrooms is not None:
-        if bedrooms >= 4:
-            query = query.filter(models.Property.bedrooms >= 4)
-        else:
-            query = query.filter(models.Property.bedrooms == bedrooms)
+        query = query.filter(models.Property.bedrooms == bedrooms)
 
     if is_featured is not None:
         query = query.filter(models.Property.is_featured == is_featured)
@@ -98,6 +149,7 @@ def create_property(
 ):
     db_prop = models.Property(**prop_in.model_dump())
     db.add(db_prop)
+    ensure_property_selector_options(db, db_prop)
     db.commit()
     db.refresh(db_prop)
     return db_prop
@@ -118,6 +170,7 @@ def update_property(
     for field, value in update_data.items():
         setattr(db_prop, field, value)
 
+    ensure_property_selector_options(db, db_prop)
     db.commit()
     db.refresh(db_prop)
     return db_prop

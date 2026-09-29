@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.database import engine, Base, SessionLocal
-from app.models import User, Property, PropertyImage
+from app.models import User, Property, PropertyImage, PropertySelectorOption
 from app.auth import get_password_hash, verify_password
 from app.config import settings
 
@@ -23,6 +23,20 @@ def seed_db(db: Session):
         admin.hashed_password = get_password_hash(settings.ADMIN_PASSWORD)
         db.commit()
         print(f"[SEED] Rotated initial admin password for: {settings.ADMIN_EMAIL}")
+
+    selector_values = {
+        "operation_type": ["Venta", "Alquiler"],
+        "property_type": ["Casa", "Departamento", "Cochera", "Oficina", "Terreno", "Local"],
+        "currency": ["USD", "ARS"],
+        "location": ["Córdoba Capital", "Las Varillas", "Río Ceballos"],
+        "bedrooms": ["0", "1", "2", "3", "4", "5", "6"],
+    }
+    for category, values in selector_values.items():
+        for value in values:
+            exists = db.query(PropertySelectorOption).filter_by(category=category, value=value).first()
+            if not exists:
+                db.add(PropertySelectorOption(category=category, value=value))
+    db.commit()
 
     # 2. Seed Initial Properties matching reference screenshots
     if db.query(Property).count() == 0:

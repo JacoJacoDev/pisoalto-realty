@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import List, Optional
+from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
+from typing import List, Literal, Optional
 from datetime import datetime
 
 # --- Auth Schemas ---
@@ -77,6 +77,32 @@ class PropertyUpdate(BaseModel):
     contact_email: Optional[str] = None
     is_published: Optional[bool] = None
     is_featured: Optional[bool] = None
+
+class PropertySelectorOptionCreate(BaseModel):
+    category: Literal["operation_type", "property_type", "currency", "location", "bedrooms"]
+    value: str
+
+    @field_validator("value")
+    @classmethod
+    def validate_value(cls, value: str, info):
+        cleaned_value = value.strip()
+        if not cleaned_value:
+            raise ValueError("La opción no puede estar vacía.")
+        if info.data.get("category") == "bedrooms":
+            try:
+                bedrooms = int(cleaned_value)
+            except ValueError as exc:
+                raise ValueError("Dormitorios debe ser un número entero.") from exc
+            if bedrooms < 0:
+                raise ValueError("Dormitorios no puede ser negativo.")
+            return str(bedrooms)
+        return cleaned_value
+
+class PropertySelectorOptionResponse(PropertySelectorOptionCreate):
+    id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 class PropertyResponse(PropertyBase):
     id: int

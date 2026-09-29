@@ -49,6 +49,14 @@ class PropertyImage(Base):
 
     property = relationship("Property", back_populates="images")
 
+class PropertySelectorOption(Base):
+    __tablename__ = "property_selector_options"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String(50), nullable=False, index=True)
+    value = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 class ValuationRequest(Base):
     __tablename__ = "valuation_requests"
 
